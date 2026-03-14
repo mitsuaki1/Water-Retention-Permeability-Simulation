@@ -160,7 +160,7 @@ No installation, no dependencies, no build steps.
 
 Settings → Pages → Source: `main` branch / `/ (root)` → Save
 
-数分後に公開されます: `https://mitsulab.github.io/Water-Retention-Permeability-Simulation/`
+https://mitsuaki1.github.io/Water-Retention-Permeability-Simulation/
 
 ---
 
