@@ -1,6 +1,6 @@
 # 土質による保水力・透水力の比較シミュレーション
 
-（GitHub Pages）https://mitsuaki1.github.io/Water-Retention-Permeability-Simulation/
+（GitHub Pages）https://mitsulab-soil.github.io/Water-Retention-Permeability-Simulation/
 
 ## 🌱 概要 / Overview
 
