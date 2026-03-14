@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>土質による保水力・透水力の比較シミュレーション | mitsulab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
+.hdr{padding:14px 16px 8px;border-bottom:1px solid #21262d;background:#161b22}
+.hdr-t{font-size:15px;font-weight:500;color:#e6edf3}
+.hdr-s{font-size:10px;color:#8b949e;letter-spacing:.08em;margin-top:2px}
+.hdr-badge{display:inline-block;margin-top:5px;font-size:9px;padding:2px 8px;border-radius:10px;border:1px solid #30363d;color:#8b949e;letter-spacing:.05em}
+.timebar{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:7px 16px;border-bottom:1px solid #21262d;background:#0d1117}
+.tb-item{display:flex;flex-direction:column;align-items:flex-start}
+.tb-label{font-size:9px;color:#8b949e;letter-spacing:.06em;text-transform:uppercase}
+.tb-val{font-size:13px;font-weight:500;color:#e6edf3}
+.sim3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px}
+.sblk{border-radius:8px;border:1px solid #21262d;overflow:hidden;background:#161b22}
+.sblk-lbl{padding:5px 10px 4px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid #21262d}
+.lbl-jp{font-size:12px;font-weight:500;color:#e6edf3}
+.lbl-en{font-size:9px;color:#8b949e;letter-spacing:.05em}
+canvas.sc{display:block;width:100%}
+.ctrl{padding:10px 12px;border-top:1px solid #21262d;background:#161b22}
+.ctrl-h{font-size:9px;font-weight:500;color:#8b949e;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.common-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 18px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #21262d}
+.cr{display:flex;align-items:center;gap:8px}
+.cr-l{font-size:10px;color:#8b949e;white-space:nowrap;min-width:90px}
+.cr input[type=range]{flex:1;accent-color:#388bfd;cursor:pointer}
+.cr-v{font-size:10px;font-weight:500;color:#e6edf3;min-width:44px;text-align:right}
+.per-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.per-col{background:#0d1117;border-radius:6px;padding:9px;border:1px solid #21262d}
+.per-name{font-size:10px;font-weight:500;color:#e6edf3;margin-bottom:7px}
+.sr{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.sr-l{font-size:9px;color:#8b949e;width:56px;flex-shrink:0}
+.sr input[type=range]{flex:1;accent-color:#3fb950;cursor:pointer}
+.sr-v{font-size:9px;color:#e6edf3;min-width:32px;text-align:right}
+.ksat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.ksat-card{background:#0d1117;border-radius:6px;padding:7px 10px;text-align:center;border:1px solid #21262d}
+.ksat-l{font-size:9px;color:#8b949e;margin-bottom:2px}
+.ksat-v{font-size:13px;font-weight:500;color:#e6edf3}
+.ksat-u{font-size:9px;font-weight:400;color:#8b949e}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0}
+.btn{padding:6px 16px;font-size:11px;border-radius:6px;border:1px solid #30363d;background:none;color:#8b949e;cursor:pointer;transition:all .15s}
+.btn.pr{background:#238636;color:#fff;border-color:#2ea043}
+.btn:hover{color:#e6edf3;border-color:#8b949e}
+.btn.pr:hover{background:#2ea043}
+.leg{display:flex;gap:10px;flex-wrap:wrap;padding:4px 12px 8px}
+.li{display:flex;align-items:center;gap:5px;font-size:10px;color:#8b949e}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.graphs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:0 8px 8px}
+.gc{background:#161b22;border-radius:6px;padding:8px;border:1px solid #21262d}
+.gc-t{font-size:9px;color:#8b949e;margin-bottom:4px}
+.sc-chips{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.chip{font-size:9px;color:#8b949e;background:#0d1117;border-radius:4px;padding:2px 7px;border:1px solid #21262d}
+.chip span{font-weight:500;color:#e6edf3}
+.formula-section{padding:16px;border-top:1px solid #21262d;background:#0d1117}
+.fs-title{font-size:13px;font-weight:500;color:#e6edf3;margin-bottom:12px}
+.fs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.fs-block{background:#161b22;border-radius:8px;padding:12px 14px;border:1px solid #21262d}
+.fs-head{font-size:10px;font-weight:500;color:#e6edf3;margin-bottom:7px;border-bottom:1px solid #21262d;padding-bottom:5px}
+.fs-body{font-size:10px;color:#8b949e;line-height:1.7}
+.eq{font-family:'SFMono-Regular',Consolas,monospace;background:#0d1117;border-radius:4px;padding:4px 8px;display:block;margin:5px 0;font-size:9px;color:#79c0ff;letter-spacing:.02em;border:1px solid #21262d}
+.ref{color:#6e7681;font-size:9px;margin-top:4px;display:block}
+footer{padding:12px 16px;border-top:1px solid #21262d;font-size:10px;color:#6e7681;text-align:center}
+footer a{color:#388bfd;text-decoration:none}
+@media(max-width:640px){
+  .sim3,.fs-grid,.per-grid,.ksat-row{grid-template-columns:1fr}
+  .common-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-t">土質による保水力・透水力の比較シミュレーション</div>
+  <div class="hdr-s">SOIL WATER RETENTION &amp; HYDRAULIC CONDUCTIVITY SIMULATION</div>
+  <div class="hdr-badge">mitsulab / 醸す谷 Vallis Fermenti</div>
+</div>
+
+<div class="timebar">
+  <div class="tb-item"><span class="tb-label">経過時間 / Elapsed</span><span class="tb-val" id="tb-elapsed">0 分</span></div>
+  <div class="tb-item"><span class="tb-label">降雨状態 / Rain</span><span class="tb-val" id="tb-rain">停止</span></div>
+  <div class="tb-item"><span class="tb-label">団粒保水残存 / Agg. retention</span><span class="tb-val" id="tb-ret">0%</span></div>
+  <div class="tb-item"><span class="tb-label">時間スケール</span><span class="tb-val" id="tb-scale">1 frame = 10 分</span></div>
+</div>
+
+<div class="sim3">
+  <div class="sblk"><div class="sblk-lbl"><span class="lbl-jp">粘性土</span><span class="lbl-en">Clayey Soil</span></div><canvas class="sc" id="cv0" height="220"></canvas></div>
+  <div class="sblk"><div class="sblk-lbl"><span class="lbl-jp">砂質土</span><span class="lbl-en">Sandy Soil</span></div><canvas class="sc" id="cv1" height="220"></canvas></div>
+  <div class="sblk"><div class="sblk-lbl"><span class="lbl-jp">団粒構造</span><span class="lbl-en">Aggregate Structure</span></div><canvas class="sc" id="cv2" height="220"></canvas></div>
+</div>
+
+<div class="leg">
+  <div class="li"><div class="ld" style="background:#4fc3f7"></div>浸透水 / Infiltrating water</div>
+  <div class="li"><div class="ld" style="background:#4fc3f7;opacity:.4"></div>表面流出 / Surface runoff</div>
+  <div class="li"><div class="ld" style="background:#80cbc4"></div>団粒保持水 / Retained (micro-pore, ~6 days)</div>
+</div>
+
+<div class="ctrl">
+  <div class="ctrl-h">共通パラメータ / Common parameters</div>
+  <div class="common-grid">
+    <div class="cr"><span class="cr-l">降水量 (0–30 mm/h)</span><input type="range" id="sl-rain" min="0" max="30" value="8" step="1" oninput="setC('rain',+this.value)"><span class="cr-v" id="v-rain">8 mm/h</span></div>
+    <div class="cr"><span class="cr-l">締固め圧</span><input type="range" id="sl-comp" min="0" max="100" value="20" step="1" oninput="setC('comp',+this.value)"><span class="cr-v" id="v-comp">20%</span></div>
+    <div class="cr"><span class="cr-l">傾斜角</span><input type="range" id="sl-slope" min="0" max="15" value="5" step="1" oninput="setC('slope',+this.value)"><span class="cr-v" id="v-slope">5°</span></div>
+    <div class="cr"><span class="cr-l">有機物量</span><input type="range" id="sl-om" min="0" max="15" value="5" step="1" oninput="setC('om',+this.value)"><span class="cr-v" id="v-om">5%</span></div>
+  </div>
+  <div class="ctrl-h">個別パラメータ / Per-soil parameters</div>
+  <div class="per-grid">
+    <div class="per-col"><div class="per-name">粘性土 / Clayey soil</div>
+      <div class="sr"><span class="sr-l">粘土割合</span><input type="range" id="p0clay" min="50" max="100" value="75" step="1" oninput="setSP(0,'clay',+this.value)"><span class="sr-v" id="v0clay">75%</span></div>
+    </div>
+    <div class="per-col"><div class="per-name">砂質土 / Sandy soil</div>
+      <div class="sr"><span class="sr-l">砂割合</span><input type="range" id="p1sand" min="50" max="100" value="80" step="1" oninput="setSP(1,'sand',+this.value)"><span class="sr-v" id="v1sand">80%</span></div>
+    </div>
+    <div class="per-col"><div class="per-name">団粒構造 / Aggregate structure</div>
+      <div class="sr"><span class="sr-l">団粒形成量</span><input type="range" id="p2agg" min="10" max="100" value="70" step="1" oninput="setSP(2,'agg',+this.value)"><span class="sr-v" id="v2agg">70%</span></div>
+    </div>
+  </div>
+  <div class="ctrl-h">飽和透水係数 Ksat (参考値)</div>
+  <div class="ksat-row">
+    <div class="ksat-card"><div class="ksat-l">粘性土</div><div class="ksat-v" id="ksat0">—<span class="ksat-u"> mm/h</span></div></div>
+    <div class="ksat-card"><div class="ksat-l">砂質土</div><div class="ksat-v" id="ksat1">—<span class="ksat-u"> mm/h</span></div></div>
+    <div class="ksat-card"><div class="ksat-l">団粒構造</div><div class="ksat-v" id="ksat2">—<span class="ksat-u"> mm/h</span></div></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn pr" id="btn-s" onclick="toggleRain()">▶ 降雨開始 / Start rain</button>
+    <button class="btn" onclick="doReset()">↺ リセット（ランダム）/ Reset</button>
+  </div>
+</div>
+
+<div class="graphs">
+  <div class="gc"><div class="gc-t">含水率 / Soil moisture content (%)</div><canvas id="gc0" height="70" style="display:block;width:100%"></canvas><div class="sc-chips" id="ch0"></div></div>
+  <div class="gc"><div class="gc-t">表面流出量 / Surface runoff (cumul.)</div><canvas id="gc1" height="70" style="display:block;width:100%"></canvas><div class="sc-chips" id="ch1"></div></div>
+  <div class="gc"><div class="gc-t">浸透速度 / Infiltration rate</div><canvas id="gc2" height="70" style="display:block;width:100%"></canvas><div class="sc-chips" id="ch2"></div></div>
+</div>
+
+<div class="formula-section">
+  <div class="fs-title">シミュレーションの物理的基礎 / Physical Basis of the Simulation</div>
+  <div class="fs-grid">
+    <div class="fs-block">
+      <div class="fs-head">① 飽和透水係数 Ksat（Rosetta モデル近似）</div>
+      <div class="fs-body">
+        土壌テクスチャと締固め圧から各土質の Ksat を推定する。
+        <span class="eq">粘性土: Ksat = 0.04 × (1−f_clay)^3.5 × (1−σ)^0.85 × (1+0.3·f_om)</span>
+        <span class="eq">砂質土: Ksat = 500 × f_sand^4 × (1−σ)^0.55 × (1+0.2·f_om)</span>
+        <span class="eq">団粒構造: Ksat = (12 + 28·f_agg + 8·f_om) × (1−σ)^0.45</span>
+        実測参考値: 粘土 0.001–0.1 mm/h / 砂 100–720 mm/h / 団粒 10–100 mm/h
+        <span class="ref">Schaap M.G. et al. (2001) ROSETTA. J. Hydrol. 251.</span>
+      </div>
+    </div>
+    <div class="fs-block">
+      <div class="fs-head">② 浸透確率と Green-Ampt 式</div>
+      <div class="fs-body">
+        雨滴が地表面に到達した際の浸透確率 p_infilt を評価する。
+        <span class="eq">p_infilt = Ksat / (Ksat + I + 0.5)</span>
+        <span class="eq">f(t) = Ksat × (1 + ψ_f · Δθ / F(t))</span>
+        I: 降水強度 (mm/h), ψ_f: 前線マトリクポテンシャル, Δθ: 初期含水率差。Ksat ≫ I のとき全量浸透（砂質土），Ksat ≪ I のとき表面流出優勢（粘性土）。
+        <span class="ref">Green W.H., Ampt G.A. (1911) J. Agric. Sci. 4(1).</span>
+      </div>
+    </div>
+    <div class="fs-block">
+      <div class="fs-head">③ van Genuchten モデル（水分特性曲線）</div>
+      <div class="fs-body">
+        不飽和域の体積含水率 θ(h) を記述する標準モデル。
+        <span class="eq">θ(h) = θ_r + (θ_s − θ_r) / [1 + |α·h|^n]^m</span>
+        代表パラメータ (Carsel &amp; Parrish 1988):<br>
+        粘土: θ_r=0.068, θ_s=0.38, α=0.008, n=1.09<br>
+        砂: θ_r=0.045, θ_s=0.43, α=0.145, n=2.68<br>
+        団粒(壌土近似): θ_r=0.078, θ_s=0.46, α=0.036, n=1.56
+        <span class="ref">van Genuchten M.Th. (1980) SSSAJ 44.</span>
+      </div>
+    </div>
+    <div class="fs-block">
+      <div class="fs-head">④ 団粒二重間隙モデルと保水時間スケール</div>
+      <div class="fs-body">
+        団粒構造では間隙をマクロポア（団粒間）とミクロポア（団粒内）に分離して扱う。
+        <span class="eq">∂θ_im/∂t = −α_w · (h_f − h_im) / (1−w_f)</span>
+        α_w: 二相間水分交換係数, w_f: マクロポア体積分率。団粒内ミクロポア (r ≈ 0.1–10 µm) の保水時定数は実測で 2–7 日。本モデルでは 1 frame = 10 分とし，τ = 864 frames（≈ 6 日）で指数減衰。水が下位団粒にも順次移行・保持される挙動を再現。
+        <span class="ref">Gerke H.H., van Genuchten M.Th. (1993) WRR 29(2).</span>
+      </div>
+    </div>
+    <div class="fs-block">
+      <div class="fs-head">⑤ 毛管保水力と Young-Laplace 式</div>
+      <div class="fs-body">
+        細孔内の毛管力（マトリクポテンシャル）を孔隙径から推定する。
+        <span class="eq">ψ = −2σ · cosθ_c / r</span>
+        σ = 0.0728 N/m (20℃), θ_c: 接触角。粘土孔 r ≈ 0.1–1 µm → ψ ≈ −150 to −1500 kPa（圃場容水量〜永久凋点），砂孔 r ≈ 50–500 µm → ψ ≈ −0.3 to −3 kPa（排水速く保水力低）。団粒構造は大孔隙と細孔隙の共存により高透水性・高保水性を同時に実現する。
+        <span class="ref">Marshall T.J., Holmes J.W. (1988) Soil Physics. 2nd ed. Cambridge UP.</span>
+      </div>
+    </div>
+    <div class="fs-block">
+      <div class="fs-head">⑥ 締固めと Darcy 則</div>
+      <div class="fs-body">
+        締固め圧 σ の増加により間隙比 e が減少し透水係数が低下する。
+        <span class="eq">k ∝ e^3 / (1 + e) · C_k</span>
+        <span class="eq">v = −Ksat · (dh/dz)</span>
+        C_k: 土性依存係数, dh/dz: 水頭勾配。本モデルでは最大 30% の体積圧縮と指数的な透水係数低下を再現。砂質土の Ksat は粘性土の 10³–10⁶ 倍大きく，水が深部まで高速浸透する。
+        <span class="ref">Taylor D.W. (1948) Fundamentals of Soil Mechanics. Wiley.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="https://github.com/mitsulab" target="_blank">mitsulab</a> &nbsp;|&nbsp;
+  醸す谷 / Vallis Fermenti &nbsp;|&nbsp;
+  土壌生態系・有機土木の探求
+</footer>
+
+<script>
+var dpr=window.devicePixelRatio||1;
+var raining=false,rainMM=8,frame=0,histLen=100;
+var C={rain:8,comp:20,slope:5,om:5};
+var SP=[{clay:75},{sand:80},{agg:70}];
+var NAMES=['粘性土','砂質土','団粒'];
+var FRAME_REAL_MIN=10;
+var AGG_TAU=864;
+var elapsed_frames=0;
+var DISP_H=220,VIRT_H=440,CROP_PX=130;
+
+var cvs=[0,1,2].map(function(i){return document.getElementById('cv'+i);});
+var offscreens=[0,1,2].map(function(){return document.createElement('canvas');});
+var ctxs=offscreens.map(function(c){return c.getContext('2d');});
+var dispCtxs=cvs.map(function(c){
+  var ctx=c.getContext('2d');
+  var w=c.offsetWidth;
+  c.width=w*dpr;c.height=DISP_H*dpr;c.style.height=DISP_H+'px';
+  ctx.scale(dpr,dpr);return ctx;
+});
+function W(si){return cvs[si].offsetWidth;}
+function initOff(){
+  [0,1,2].forEach(function(si){
+    var w=W(si);
+    offscreens[si].width=w*dpr;offscreens[si].height=VIRT_H*dpr;
+    ctxs[si].scale(dpr,dpr);
+  });
+}
+var gcvs=[0,1,2].map(function(i){return document.getElementById('gc'+i);});
+var gctxs=gcvs.map(function(c){
+  var ctx=c.getContext('2d');
+  var w=c.offsetWidth;c.width=w*dpr;c.height=70*dpr;c.style.height='70px';
+  ctx.scale(dpr,dpr);return ctx;
+});
+var SURF_Y0=40;
+function surfV(si,x){var a=C.slope*Math.PI/180;return SURF_Y0+(x/W(si))*Math.tan(a)*W(si);}
+function soilH(si){return(VIRT_H-SURF_Y0-6)*(1-C.comp/100*0.28);}
+function botV(si,x){return surfV(si,x)+soilH(si);}
+function calcKsat(si){
+  var comp=C.comp/100,om=C.om/15;
+  if(si===0){var c=SP[0].clay/100;return Math.max(0.0005,0.04*Math.pow(1-c,3.5)*(1-comp*0.85)*(1+om*0.3));}
+  if(si===1){var s=SP[1].sand/100;return Math.max(0.5,500*Math.pow(s,4)*(1-comp*0.55)*(1+om*0.2));}
+  var a=SP[2].agg/100;return Math.max(1,(12+a*28+om*8)*(1-comp*0.45));
+}
+function infiltP(si){var k=calcKsat(si),r=rainMM||1;return Math.min(0.98,k/(k+r+0.5));}
+function macropor(si){
+  var comp=C.comp/100;
+  if(si===0){var c=SP[0].clay/100;return Math.max(0.004,(0.10-c*0.08)*(1-comp*0.72));}
+  if(si===1){var s=SP[1].sand/100;return Math.max(0.22,(0.42+s*0.32)*(1-comp*0.38));}
+  var a=SP[2].agg/100;return Math.max(0.18,(0.32+a*0.30)*(1-comp*0.35));
+}
+function microret(si){
+  var om=C.om/15;
+  if(si===0)return 0.40+SP[0].clay/100*0.26+om*0.07;
+  if(si===1)return 0.04+om*0.04;
+  return 0.28+SP[2].agg/100*0.28+om*0.10;
+}
+var GS=[[],[],[]],AGG_CL=[],RET_DR=[];
+function rL(b,r){return b+Math.random()*r;}
+function buildGrains(si){
+  GS[si]=[];
+  var w=W(si),comp=C.comp/100;
+  if(si===0){
+    var clay=SP[0].clay/100,baseR=0.7+(1-clay)*1.5;
+    var cnt=Math.round(700+clay*300+(1-comp)*80);
+    for(var i=0;i<cnt;i++){
+      var x=1+Math.random()*(w-2),sy_=surfV(0,x),by_=botV(0,x);
+      if(by_<=sy_+3)continue;
+      var y=sy_+1+Math.random()*(by_-sy_-2);
+      var r=Math.max(0.35,baseR*(0.4+Math.random()*1.2)*(1-comp*0.15));
+      var lum=rL(0.52,0.45);
+      GS[0].push({x:x,y:y,r:r,cr:Math.round((90+clay*28)*lum),cg:Math.round((54+clay*8)*lum),cb:Math.round((25+clay*4)*lum),a:rL(0.55,0.35)});
+    }
+  } else if(si===1){
+    var sand=SP[1].sand/100;
+    var cntB=Math.round(340+sand*280+(1-comp)*80);
+    for(var i=0;i<cntB;i++){
+      var x=1+Math.random()*(w-2),sy_=surfV(1,x),by_=botV(1,x);
+      if(by_<=sy_+5)continue;
+      var y=sy_+3+Math.random()*(by_-sy_-5);
+      var r=Math.max(1.6,(2.2+Math.random()*3.5)*(1-comp*0.12)*(0.7+sand*0.45));
+      var nV=5+Math.round(Math.random()*3),verts=[];
+      for(var v=0;v<nV;v++){var ang=v/nV*Math.PI*2+(Math.random()-0.5)*0.55;verts.push({a:ang,d:r*(0.62+Math.random()*0.46)});}
+      var lum=rL(0.66,0.34);
+      GS[1].push({x:x,y:y,r:r,verts:verts,cr:Math.round((195+sand*28)*lum),cg:Math.round((158+sand*18)*lum),cb:Math.round((90+sand*12)*lum),a:rL(0.65,0.28),angular:true});
+    }
+    var cntF=Math.round((1-sand)*300+180);
+    for(var i=0;i<cntF;i++){
+      var x=1+Math.random()*(w-2),sy_=surfV(1,x),by_=botV(1,x);
+      if(by_<=sy_+2)continue;
+      var y=sy_+1+Math.random()*(by_-sy_-2);
+      var r=0.5+Math.random()*1.1,lum=rL(0.48,0.42);
+      GS[1].push({x:x,y:y,r:r,cr:Math.round(138*lum),cg:Math.round(105*lum),cb:Math.round(58*lum),a:rL(0.5,0.3)});
+    }
+  } else {
+    AGG_CL=[];RET_DR=[];
+    var agg=SP[2].agg/100,spacing=Math.max(3.5,12-agg*8);
+    var cols=Math.ceil(w/spacing)+2,rows=Math.ceil(soilH(2)/spacing)+2;
+    for(var row=0;row<rows;row++){
+      for(var col=0;col<cols;col++){
+        var cx=(col+0.5)*spacing+(Math.random()-0.5)*spacing*0.65;
+        var baseY=row*spacing+(Math.random()-0.5)*spacing*0.6;
+        var sx_=surfV(2,cx),cy=sx_+baseY+spacing*0.15,by_=botV(2,cx);
+        if(cy<sx_+0.8||cy>by_-0.8)continue;
+        var cR=Math.max(1.0,(1.5+agg*3.0)*(1-comp*0.18));
+        var nParts=Math.round(5+agg*8),parts=[];
+        for(var i=0;i<nParts;i++){
+          var ang=Math.random()*Math.PI*2,dist=Math.random()*cR;
+          var gx=cx+Math.cos(ang)*dist+(Math.random()-0.5)*0.8;
+          var gy=cy+Math.sin(ang)*dist+(Math.random()-0.5)*0.8;
+          if(gy<sx_+0.3||gy>by_-0.3)continue;
+          var gr=Math.max(0.5,(0.8+agg*1.1)*(1-comp*0.14));
+          var lum=rL(0.50,0.48);
+          parts.push({x:gx,y:gy,r:gr});
+          GS[2].push({x:gx,y:gy,r:gr,cr:Math.round(75*lum),cg:Math.round(50*lum),cb:Math.round(22*lum),a:rL(0.68,0.24)});
+        }
+        var ci=AGG_CL.length;
+        AGG_CL.push({cx:cx,cy:cy,r:cR,parts:parts,lastWet:-99999,retainedWater:0});
+        var retN=Math.round(2+agg*3);
+        for(var i=0;i<retN;i++){
+          var ang=Math.random()*Math.PI*2,dist=Math.random()*cR*0.52;
+          var rx=cx+Math.cos(ang)*dist,ry=cy+Math.sin(ang)*dist;
+          if(ry<sx_+0.3||ry>by_-0.3)continue;
+          RET_DR.push({x:rx,y:ry,r:rL(0.7,0.4),alpha:rL(0.45,0.38),ci:ci});
+        }
+      }
+    }
+  }
+}
+var ST=[mSt(),mSt(),mSt()];
+function mSt(){return{particles:[],moisture:0,moistH:[],runoffH:[],infiltH:[],totalRO:0,totalInf:0,fRO:0,fInf:0};}
+function spawnRain(si){
+  var w=W(si),x=1+Math.random()*(w-2);
+  ST[si].particles.push({x:x,y:-22,vx:0,vy:1.6+Math.random()*0.7,type:'rain',life:1,age:0});
+}
+function updateP(si){
+  var s=ST[si],w=W(si),slope=C.slope*Math.PI/180;
+  var ret=microret(si),comp=C.comp/100,ip=infiltP(si);
+  s.fRO=0;s.fInf=0;
+  s.particles=s.particles.filter(function(p){
+    p.age++;
+    var sy_=surfV(si,p.x),by_=botV(si,p.x);
+    if(p.type==='rain'){
+      p.vy+=0.13;p.x+=p.vx;p.y+=p.vy;
+      if(p.y>=sy_){
+        p.y=sy_;
+        if(Math.random()<ip){p.type='infilt';p.vy=0.5+Math.random()*0.9;p.vx=(Math.random()-0.5)*0.22;s.fInf++;}
+        else{p.type='runoff';p.vx=Math.cos(slope)*(1.4+comp*0.8);p.vy=Math.sin(slope)*1.4;s.fRO++;}
+      }
+    } else if(p.type==='runoff'){
+      p.vx=Math.cos(slope)*(1.2+comp*0.6);p.vy=Math.sin(slope)*1.2;
+      p.x+=p.vx;p.y=surfV(si,p.x)+0.7;
+      if(p.x>w+8){s.totalRO+=0.4;p.life=0;}
+    } else if(p.type==='infilt'){
+      if(si===0){p.vy+=0.012*(macropor(0)+0.012);p.vx+=(Math.random()-0.5)*0.06;p.vx*=0.80;p.vy*=0.78;}
+      else if(si===1){p.vy+=0.22*(macropor(1)+0.30);p.vx+=(Math.random()-0.5)*0.10;p.vx*=0.87;p.vy*=0.92;}
+      else{
+        var inAgg=false;
+        for(var ai=0;ai<AGG_CL.length;ai++){
+          var ag=AGG_CL[ai],dx=p.x-ag.cx,dy=p.y-ag.cy;
+          if(dx*dx+dy*dy<ag.r*ag.r){
+            inAgg=true;ag.lastWet=frame;ag.retainedWater=Math.min(1,ag.retainedWater+0.15);
+            p.vy*=0.62;p.vx*=0.50;
+            if(p.age>10&&Math.random()<ret*0.08){p.type='retained';p.ci=ai;return true;}
+            break;
+          }
+        }
+        if(!inAgg){p.vy+=0.11*(macropor(2)+0.20);}
+        p.vx+=(Math.random()-0.5)*0.15;p.vx*=0.88;p.vy*=0.90;
+      }
+      if(si<2){
+        var gs=GS[si];
+        for(var gi=0;gi<gs.length;gi++){
+          var g=gs[gi],dx=p.x-g.x,dy=p.y-g.y,t=g.r+1.5;
+          if(dx*dx+dy*dy<t*t){
+            var d=Math.sqrt(dx*dx+dy*dy)||0.1;
+            p.vx=(dx/d)*0.45;p.vy=(dy/d)*0.26;
+            if(p.age>8&&Math.random()<ret*0.04){p.type='retained';return true;}
+            break;
+          }
+        }
+      }
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y>by_){s.totalInf+=0.3;p.life=0;}
+    } else if(p.type==='retained'){
+      var tau=si===2?AGG_TAU:300;
+      p.life-=1/tau;
+    }
+    p.life-=0.005;
+    if(p.x<-2||p.x>w+2||p.y>VIRT_H+10)p.life=0;
+    return p.life>0.01;
+  });
+  if(s.particles.length>900)s.particles.splice(0,s.particles.length-900);
+  if(si===2){for(var ai=0;ai<AGG_CL.length;ai++)AGG_CL[ai].retainedWater*=(1-1/AGG_TAU);}
+  var waterIn=s.particles.filter(function(p){return(p.type==='infilt'||p.type==='retained')&&p.y>surfV(si,p.x);}).length;
+  s.moisture=Math.min(100,waterIn/(55+microret(si)*260)*100);
+  if(frame%3===0){
+    s.moistH.push(s.moisture);s.runoffH.push(Math.min(100,s.totalRO));s.infiltH.push(Math.min(100,s.totalInf));
+    if(s.moistH.length>histLen){s.moistH.shift();s.runoffH.shift();s.infiltH.shift();}
+  }
+}
+function drawSoil(si){
+  var ctx=ctxs[si],w=W(si),s=ST[si],comp=C.comp/100;
+  var sy0=surfV(si,0),syW=surfV(si,w),by0=botV(si,0);
+  ctx.clearRect(0,0,w,VIRT_H);
+  ctx.fillStyle='#0a1018';ctx.fillRect(0,0,w,VIRT_H);
+  var sg=ctx.createLinearGradient(0,sy0,0,Math.min(by0+20,VIRT_H));
+  if(si===0){var clay=SP[0].clay/100;sg.addColorStop(0,'rgb('+Math.round(92+clay*22)+','+Math.round(55+clay*8)+',27)');sg.addColorStop(0.5,'rgb('+Math.round(64+clay*14)+','+Math.round(39+clay*4)+',17)');sg.addColorStop(1,'rgb(42,26,12)');}
+  else if(si===1){var sand=SP[1].sand/100;sg.addColorStop(0,'rgb('+Math.round(190+sand*30)+','+Math.round(154+sand*18)+','+Math.round(92+sand*12)+')');sg.addColorStop(0.35,'rgb('+Math.round(150+sand*18)+','+Math.round(116+sand*10)+','+Math.round(68+sand*8)+')');sg.addColorStop(1,'rgb(92,70,38)');}
+  else{sg.addColorStop(0,'#271a0a');sg.addColorStop(0.4,'#1a0f05');sg.addColorStop(1,'#0f0905');}
+  ctx.beginPath();ctx.moveTo(-2,sy0);ctx.lineTo(w+2,syW);ctx.lineTo(w+2,VIRT_H);ctx.lineTo(-2,VIRT_H);ctx.closePath();ctx.fillStyle=sg;ctx.fill();
+  if(s.moisture>5){ctx.fillStyle='rgba(79,145,200,'+(s.moisture/100*0.18)+')';ctx.fillRect(0,sy0,w,VIRT_H-sy0);}
+  if(comp>0.12){ctx.fillStyle='rgba(0,0,0,'+(comp*0.13)+')';ctx.fillRect(0,sy0,w,VIRT_H-sy0);}
+  var gs=GS[si];
+  for(var i=0;i<gs.length;i++){
+    var g=gs[i];
+    ctx.fillStyle='rgba('+g.cr+','+g.cg+','+g.cb+','+g.a+')';
+    if(g.angular&&g.verts){
+      ctx.beginPath();var v0=g.verts[0];ctx.moveTo(g.x+Math.cos(v0.a)*v0.d,g.y+Math.sin(v0.a)*v0.d);
+      for(var vi=1;vi<g.verts.length;vi++){var vv=g.verts[vi];ctx.lineTo(g.x+Math.cos(vv.a)*vv.d,g.y+Math.sin(vv.a)*vv.d);}
+      ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(255,240,200,0.09)';ctx.lineWidth=0.4;ctx.stroke();
+    } else {ctx.beginPath();ctx.arc(g.x,g.y,g.r,0,Math.PI*2);ctx.fill();}
+  }
+  if(si===2){
+    AGG_CL.forEach(function(ag){ctx.beginPath();ctx.arc(ag.cx,ag.cy,ag.r+0.8,0,Math.PI*2);ctx.strokeStyle='rgba(100,68,28,0.15)';ctx.lineWidth=0.8;ctx.stroke();});
+    RET_DR.forEach(function(d){
+      var ag=AGG_CL[d.ci];
+      if(!ag||ag.retainedWater<0.01)return;
+      var alpha=d.alpha*ag.retainedWater;if(alpha<0.02)return;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fillStyle='rgba(128,203,196,'+alpha+')';ctx.fill();
+    });
+    s.particles.forEach(function(p){
+      if(p.type!=='retained')return;
+      var a=Math.min(1,p.life*1.6);
+      ctx.beginPath();ctx.arc(p.x,p.y,1.6,0,Math.PI*2);ctx.fillStyle='rgba(128,203,196,'+(a*0.75)+')';ctx.fill();
+    });
+  }
+  ctx.strokeStyle=si===0?'rgba(135,90,44,0.9)':si===1?'rgba(215,178,110,0.88)':'rgba(82,122,55,0.85)';
+  ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-2,sy0);ctx.lineTo(w+2,syW);ctx.stroke();
+  if(raining&&rainMM>0){
+    ctx.strokeStyle='rgba(79,195,247,0.25)';ctx.lineWidth=1;
+    for(var i=0;i<Math.round(rainMM*1.1);i++){var rx=Math.random()*w,ry=Math.random()*surfV(si,rx);ctx.beginPath();ctx.moveTo(rx,ry);ctx.lineTo(rx+0.8,ry+7);ctx.stroke();}
+  }
+  s.particles.forEach(function(p){
+    if(si===2&&p.type==='retained')return;
+    var a=Math.min(1,p.life*1.6);
+    if(p.type==='rain'||p.type==='infilt'){ctx.beginPath();ctx.arc(p.x,p.y,1.8,0,Math.PI*2);ctx.fillStyle='rgba(79,195,247,'+a+')';ctx.fill();ctx.beginPath();ctx.arc(p.x,p.y,3.2,0,Math.PI*2);ctx.fillStyle='rgba(79,195,247,'+(a*0.08)+')';ctx.fill();}
+    else if(p.type==='runoff'){var ang=Math.atan2(p.vy,p.vx);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(ang);ctx.beginPath();ctx.ellipse(0,0,3.2,1.3,0,0,Math.PI*2);ctx.fillStyle='rgba(79,195,247,'+(a*0.62)+')';ctx.fill();ctx.restore();}
+    else if(p.type==='retained'){ctx.beginPath();ctx.arc(p.x,p.y,1.6,0,Math.PI*2);ctx.fillStyle='rgba(128,203,196,'+(a*0.75)+')';ctx.fill();}
+  });
+  var dCtx=dispCtxs[si];dCtx.clearRect(0,0,w,DISP_H);
+  dCtx.drawImage(offscreens[si],0,0,w*dpr,CROP_PX*dpr,0,0,w,DISP_H);
+}
+function drawGraphs(){
+  var cols=['#ef9a9a','#ffe082','#a5d6a7'];
+  [0,1,2].forEach(function(gi){
+    var ctx=gctxs[gi],w=gcvs[gi].offsetWidth,h=70;
+    ctx.clearRect(0,0,w,h);
+    var pad={l:22,r:5,t:5,b:12},gw=w-pad.l-pad.r,gh=h-pad.t-pad.b;
+    [0,0.5,1].forEach(function(p){
+      var y=pad.t+gh*(1-p);
+      ctx.strokeStyle='rgba(139,148,158,0.1)';ctx.lineWidth=.4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+      ctx.fillStyle='rgba(139,148,158,0.5)';ctx.font='7px sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(p*100),pad.l-2,y+2.5);
+    });
+    [0,1,2].forEach(function(si){
+      var hist=gi===0?ST[si].moistH:gi===1?ST[si].runoffH:ST[si].infiltH;
+      if(hist.length<2)return;
+      ctx.beginPath();hist.forEach(function(v,idx){var x=pad.l+(idx/histLen)*gw,y=pad.t+gh*(1-v/100);idx===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+      ctx.strokeStyle=cols[si];ctx.lineWidth=1.4;ctx.stroke();
+    });
+    ['粘','砂','団'].forEach(function(l,si){
+      var lx=pad.l+si*(gw/3)+1;ctx.fillStyle=cols[si];ctx.fillRect(lx,h-8,8,2.5);
+      ctx.fillStyle='rgba(139,148,158,0.7)';ctx.font='7px sans-serif';ctx.textAlign='left';ctx.fillText(l,lx+10,h-5.5);
+    });
+  });
+  [0,1,2].forEach(function(si){
+    var k=calcKsat(si),s=k>=100?Math.round(k)+'':k>=1?k.toFixed(1):k.toFixed(3);
+    document.getElementById('ksat'+si).innerHTML=s+'<span class="ksat-u"> mm/h</span>';
+  });
+  var vals=[[Math.round(ST[0].moisture)+'%',Math.round(ST[1].moisture)+'%',Math.round(ST[2].moisture)+'%'],[Math.round(ST[0].totalRO),Math.round(ST[1].totalRO),Math.round(ST[2].totalRO)],[Math.round(ST[0].totalInf),Math.round(ST[1].totalInf),Math.round(ST[2].totalInf)]];
+  [0,1,2].forEach(function(gi){document.getElementById('ch'+gi).innerHTML=NAMES.map(function(n,si){return '<div class="chip">'+n+' <span>'+vals[gi][si]+'</span></div>';}).join('');});
+  var em=elapsed_frames*FRAME_REAL_MIN;
+  document.getElementById('tb-elapsed').textContent=em<60?Math.round(em)+' 分':em<1440?(em/60).toFixed(1)+' 時間':(em/1440).toFixed(1)+' 日';
+  document.getElementById('tb-rain').textContent=raining&&rainMM>0?'降雨中 '+rainMM+' mm/h':'停止';
+  if(AGG_CL.length>0){var tot=0;for(var ai=0;ai<AGG_CL.length;ai++)tot+=AGG_CL[ai].retainedWater;document.getElementById('tb-ret').textContent=Math.round(tot/AGG_CL.length*100)+'%';}
+}
+function setC(key,val){
+  C[key]=val;
+  if(key==='rain'){rainMM=val;document.getElementById('v-rain').textContent=val+' mm/h';}
+  else if(key==='comp'){document.getElementById('v-comp').textContent=val+'%';for(var i=0;i<3;i++)buildGrains(i);}
+  else if(key==='slope'){document.getElementById('v-slope').textContent=val+'°';}
+  else if(key==='om'){document.getElementById('v-om').textContent=val+'%';buildGrains(2);}
+}
+function setSP(si,key,val){
+  SP[si][key]=val;
+  var map={clay:'v0clay',sand:'v1sand',agg:'v2agg'};
+  if(map[key])document.getElementById(map[key]).textContent=val+'%';
+  buildGrains(si);
+}
+function toggleRain(){raining=!raining;document.getElementById('btn-s').textContent=raining?'■ 停止 / Stop rain':'▶ 降雨開始 / Start rain';}
+function doReset(){
+  raining=false;elapsed_frames=0;document.getElementById('btn-s').textContent='▶ 降雨開始 / Start rain';
+  C.rain=2+Math.round(Math.random()*26);C.comp=Math.round(Math.random()*60);C.slope=1+Math.round(Math.random()*12);C.om=1+Math.round(Math.random()*13);
+  SP[0].clay=50+Math.round(Math.random()*50);SP[1].sand=50+Math.round(Math.random()*50);SP[2].agg=20+Math.round(Math.random()*80);
+  rainMM=C.rain;
+  document.getElementById('sl-rain').value=C.rain;document.getElementById('v-rain').textContent=C.rain+' mm/h';
+  document.getElementById('sl-comp').value=C.comp;document.getElementById('v-comp').textContent=C.comp+'%';
+  document.getElementById('sl-slope').value=C.slope;document.getElementById('v-slope').textContent=C.slope+'°';
+  document.getElementById('sl-om').value=C.om;document.getElementById('v-om').textContent=C.om+'%';
+  document.getElementById('p0clay').value=SP[0].clay;document.getElementById('v0clay').textContent=SP[0].clay+'%';
+  document.getElementById('p1sand').value=SP[1].sand;document.getElementById('v1sand').textContent=SP[1].sand+'%';
+  document.getElementById('p2agg').value=SP[2].agg;document.getElementById('v2agg').textContent=SP[2].agg+'%';
+  for(var i=0;i<3;i++){ST[i]=mSt();buildGrains(i);}
+}
+function loop(){
+  frame++;elapsed_frames++;
+  for(var si=0;si<3;si++){
+    if(raining&&rainMM>0){var n=Math.round(rainMM*0.65);for(var i=0;i<n;i++)spawnRain(si);}
+    updateP(si);drawSoil(si);
+  }
+  drawGraphs();
+  requestAnimationFrame(loop);
+}
+initOff();for(var i=0;i<3;i++)buildGrains(i);requestAnimationFrame(loop);
+</script>
+</body>
+</html>
