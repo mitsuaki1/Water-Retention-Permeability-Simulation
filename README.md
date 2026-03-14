@@ -158,8 +158,6 @@ No installation, no dependencies, no build steps.
 
 ### GitHub Pages での公開 / Deploy via GitHub Pages
 
-Settings → Pages → Source: `main` branch / `/ (root)` → Save
-
 https://mitsuaki1.github.io/Water-Retention-Permeability-Simulation/
 
 ---
