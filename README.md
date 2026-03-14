@@ -1,5 +1,7 @@
 # 土質による保水力・透水力の比較シミュレーション
 
+（GitHub Pages）https://mitsuaki1.github.io/Water-Retention-Permeability-Simulation/
+
 ## 🌱 概要 / Overview
 
 土質による保水力・透水力の比較シミュレーションは、**粘性土・砂質土・団粒構造**という3種類の土壌において、降雨時の水の浸透・保水・表面流出をリアルタイムで可視化するブラウザベースのシミュレーションです。外部ライブラリ不要・単一HTMLファイルで動作します。
